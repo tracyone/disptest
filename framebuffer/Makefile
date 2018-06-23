@@ -3,10 +3,10 @@ all:fbbmp fb_draw_rect
 	@echo "Start build fbtest"
 
 fbbmp:fbbmp.c fbcommon.c 
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 fb_draw_rect:fb_draw_rect.c fbcommon.c 
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 clean:
 	@echo "Start clean"

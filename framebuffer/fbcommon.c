@@ -301,21 +301,22 @@ OUT:
 }
 
 static int fb_draw_rect(struct fb_object *pfb, int x0, int y0, int width,
-		    int height, int color)
+			int height, int color)
 {
 	int ret = -1;
 	if (!pfb || !pfb->framebuffer)
 		goto OUT;
 
-	switch(pfb->vinfo.bits_per_pixel) {
-		case 32:
-		case 24:
-			draw_rect_rgb32(pfb, x0, y0, width, height, color);
-			break;
-		default:
-			printf("Warning: not impletement for color depth:%d\n",
-			       pfb->vinfo.bits_per_pixel);
-			break;
+	switch (pfb->vinfo.bits_per_pixel) {
+	case 32:
+	case 24:
+		draw_rect_rgb32(pfb, x0, y0, width, height, color);
+		ret = 0;
+		break;
+	default:
+		printf("Warning: not impletement for color depth:%d\n",
+		       pfb->vinfo.bits_per_pixel);
+		break;
 	}
 
 OUT:
