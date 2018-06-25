@@ -134,6 +134,7 @@ static void print_var_info(struct fb_object *pfb)
 		       "\tvsync_len: %d\n"
 		       "\tsync: %d\n"
 		       "\tmode: %d\n"
+		       "\treserved: %d %d %d %d\n"
 		       "\n",
 		       pfb->vinfo.xres, pfb->vinfo.yres,
 		       pfb->vinfo.xres_virtual, pfb->vinfo.yres_virtual,
@@ -151,7 +152,9 @@ static void print_var_info(struct fb_object *pfb)
 		       pfb->vinfo.left_margin, pfb->vinfo.right_margin,
 		       pfb->vinfo.upper_margin, pfb->vinfo.lower_margin,
 		       pfb->vinfo.hsync_len, pfb->vinfo.vsync_len,
-		       pfb->vinfo.sync, pfb->vinfo.vmode);
+		       pfb->vinfo.sync, pfb->vinfo.vmode,
+		       pfb->vinfo.reserved[0],pfb->vinfo.reserved[1],pfb->vinfo.reserved[2],pfb->vinfo.reserved[3]
+		       );
 	} else
 		printf("Var screen info:NULL pointer\n");
 }

@@ -1,23 +1,27 @@
+PROG := fbbmp fb_draw_rect fb_pan_display fb_pan_display_rotate
 
-all:fbbmp fb_draw_rect fb_pan_display
+all:${PROG}
 	@echo "Start build fbtest"
 
-fbbmp:fbbmp.c fbcommon.c 
+fbbmp:fbbmp.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
-fb_draw_rect:fb_draw_rect.c fbcommon.c 
+fb_draw_rect:fb_draw_rect.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
-fb_pan_display:fb_pan_display_test.c fbcommon.c 
+fb_pan_display:fb_pan_display_test.c fbcommon.c
+	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
+fb_pan_display_rotate:fb_pan_display_rotate.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 clean:
 	@echo "Start clean"
-	-@rm -f fbbmp fb_draw_rect fb_pan_display
+	-@rm -f ${PROG}
 	-@rm -f *.o
 install:
 	-@mkdir -p ${OUTDIR}/fbtest/
-	-mv fbbmp fb_draw_rect fb_pan_display ${OUTDIR}/fbtest/
+	-mv ${PROG} ${OUTDIR}/fbtest/
 
 .PHONY:clean all install
 

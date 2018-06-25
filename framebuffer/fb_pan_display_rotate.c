@@ -1,10 +1,10 @@
 #include "fbcommon.h"
 
-
 int main(int argc, char *argv[])
 {
 	int ret = 1;
 	struct fb_object *drawfb = NULL;
+	int x = 0;
 
 	ret = fb_object_init(&drawfb, 0); /*/dev/fb0*/
 	if (ret || !drawfb)
@@ -31,14 +31,19 @@ int main(int argc, char *argv[])
 	drawfb->vinfo.reserved[2] = drawfb->vinfo.xres;
 	drawfb->vinfo.reserved[3] = drawfb->vinfo.yres;
 
-	drawfb->fb_device_set_vinfo(drawfb);
-	drawfb->fb_clear_screen(drawfb);
+	while(x < drawfb->vinfo.yres) {
+		drawfb->vinfo.xoffset = 0;
+		drawfb->vinfo.yoffset = x;
+		x+=5;
+		drawfb->fb_device_pan_dispaly(drawfb);
+	}
 
-	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres / 8,drawfb->vinfo.yres/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,0xffff0000);
-
-	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres*3 / 8,drawfb->vinfo.yres*3/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,0xff00ff00);
-
-	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres*5 / 8,drawfb->vinfo.yres*5/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,0xff0000ff);
+	while(x >= 0) {
+		drawfb->vinfo.xoffset = 0;
+		drawfb->vinfo.yoffset = x;
+		x-=5;
+		drawfb->fb_device_pan_dispaly(drawfb);
+	}
 
 	ret = 0;
 FREE_FB:
