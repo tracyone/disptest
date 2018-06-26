@@ -22,25 +22,26 @@ int main(int argc, char *argv[])
 
 	drawfb->print_var_info(drawfb);
 
-	ret = drawfb->fb_device_mmap(drawfb);
-	if (ret || !drawfb->framebuffer)
-		goto FREE_FB;
-
 	drawfb->vinfo.reserved[0] = 0;
 	drawfb->vinfo.reserved[1] = 0;
 	drawfb->vinfo.reserved[2] = drawfb->vinfo.xres;
 	drawfb->vinfo.reserved[3] = drawfb->vinfo.yres;
 
+	ret = drawfb->fb_device_mmap(drawfb);
+	if (ret || !drawfb->framebuffer)
+		goto FREE_FB;
+
+
 	while(x < drawfb->vinfo.yres) {
-		drawfb->vinfo.xoffset = 0;
-		drawfb->vinfo.yoffset = x;
+		drawfb->vinfo.reserved[0] = 0;
+		drawfb->vinfo.reserved[1] = x;
 		x+=5;
 		drawfb->fb_device_pan_dispaly(drawfb);
 	}
 
 	while(x >= 0) {
-		drawfb->vinfo.xoffset = 0;
-		drawfb->vinfo.yoffset = x;
+		drawfb->vinfo.reserved[0] = 0;
+		drawfb->vinfo.reserved[1] = x;
 		x-=5;
 		drawfb->fb_device_pan_dispaly(drawfb);
 	}
