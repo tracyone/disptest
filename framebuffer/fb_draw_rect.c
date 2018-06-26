@@ -1,5 +1,9 @@
 #include "fbcommon.h"
 
+#define RED 0xffff0000
+#define GREEN 0xff00ff00
+#define BLUE 0xff0000ff
+
 
 int main(int argc, char *argv[])
 {
@@ -22,23 +26,19 @@ int main(int argc, char *argv[])
 
 	drawfb->print_var_info(drawfb);
 
+
 	ret = drawfb->fb_device_mmap(drawfb);
 	if (ret || !drawfb->framebuffer)
 		goto FREE_FB;
 
-	drawfb->vinfo.reserved[0] = 0;
-	drawfb->vinfo.reserved[1] = 0;
-	drawfb->vinfo.reserved[2] = drawfb->vinfo.xres;
-	drawfb->vinfo.reserved[3] = drawfb->vinfo.yres;
-
-	drawfb->fb_device_set_vinfo(drawfb);
 	drawfb->fb_clear_screen(drawfb);
 
-	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres / 8,drawfb->vinfo.yres/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,0xffff0000);
+	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres / 8,drawfb->vinfo.yres/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4, RED);
 
-	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres*3 / 8,drawfb->vinfo.yres*3/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,0xff00ff00);
+	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres*3 / 8,drawfb->vinfo.yres*3/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,GREEN);
 
-	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres*5 / 8,drawfb->vinfo.yres*5/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,0xff0000ff);
+	drawfb->fb_draw_rect(drawfb,drawfb->vinfo.xres*5 / 8,drawfb->vinfo.yres*5/8,drawfb->vinfo.xres/4,drawfb->vinfo.yres/4,BLUE);
+
 
 	ret = 0;
 FREE_FB:

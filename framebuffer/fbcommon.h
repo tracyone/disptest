@@ -38,6 +38,8 @@ extern "C" {
 #include <string.h>
 #include <sys/errno.h>
 
+#define SUNXI_DISP2_FB_ROTATE
+
 /**
  * fb ojecjt
  */

@@ -298,7 +298,17 @@ static int fb_clear_screen(struct fb_object *pfb)
 		goto OUT;
 
 	memset(pfb->framebuffer,0,pfb->finfo.smem_len);
-	ret = 0;
+#ifdef SUNXI_DISP2_FB_ROTATE
+	/*define area that interest
+	 * only work in the case of fb rotate
+	 * function was enabled*/
+	pfb->vinfo.reserved[0] = 0;
+	pfb->vinfo.reserved[1] = 0;
+	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+	pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+	/*for compatiable purpose in the case fb rotate*/
+	ret = pfb->fb_device_pan_dispaly(pfb);
+#endif
 OUT:
 	return ret;
 }
@@ -321,6 +331,17 @@ static int fb_draw_rect(struct fb_object *pfb, int x0, int y0, int width,
 		       pfb->vinfo.bits_per_pixel);
 		break;
 	}
+#ifdef SUNXI_DISP2_FB_ROTATE
+	/*define area that interest
+	 * only work in the case of fb rotate
+	 * function was enabled*/
+	pfb->vinfo.reserved[0] = 0;
+	pfb->vinfo.reserved[1] = 0;
+	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+	pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+	/*for compatiable purpose in the case fb rotate*/
+	ret = pfb->fb_device_pan_dispaly(pfb);
+#endif
 
 OUT:
 	return ret;
