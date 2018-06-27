@@ -64,6 +64,7 @@ struct fb_object {
 	int (*fb_draw_rect)(struct fb_object *pfb, int x0, int y0, int width,
 			 int height, int color);
 	int (*fb_clear_screen)(struct fb_object *pfb);
+	int (*fb_device_blank)(struct fb_object *pfb, int blank_mode);
 };
 
 /**

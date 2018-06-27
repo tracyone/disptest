@@ -290,6 +290,22 @@ static void draw_rect_rgb32(struct fb_object *pfb, int x0, int y0, int width,
 	}
 }
 
+static int fb_device_blank(struct fb_object *pfb, int blank_mode)
+{
+	int ret = -1;
+
+	if (!pfb || pfb->fd < 0)
+		goto OUT;
+
+	ret = ioctl(pfb->fd, FBIOBLANK, blank_mode);
+	if (ret == -1) {
+		perror("FBIOBLANK err\n");
+		goto OUT;
+	}
+OUT:
+	return ret;
+}
+
 static int fb_clear_screen(struct fb_object *pfb)
 {
 	int ret = -1;
@@ -379,6 +395,7 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_device_unmap = fb_device_unmap;
 	p_obj->fb_draw_rect = fb_draw_rect;
 	p_obj->fb_clear_screen = fb_clear_screen;
+	p_obj->fb_device_blank = fb_device_blank;
 	ret = 0;
 OUT:
 	return ret;
