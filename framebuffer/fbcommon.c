@@ -275,15 +275,15 @@ static void draw_rect_rgb32(struct fb_object *pfb, int x0, int y0, int width,
 		     (y0 + pfb->vinfo.yoffset) * pfb->finfo.line_length +
 		     (x0 + pfb->vinfo.xoffset) * Bpp;
 	int x, y, j;
-	/*move alpha to low byte*/
-	if (Bpp == 4)
-		color =
-		    ((color >> 24) & 0x000000ff) | ((color << 8) & 0xffffff00);
+	unsigned char color_code[4];
+	/*argb to bgra*/
+	for (x = 0; x < 4; ++x)
+		color_code[x] = (color >> (8*x));
 
 	for (y = 0; y < height; ++y) {
 		for (x = 0; x < width * Bpp; x += Bpp) {
 			for (j = 0; j < Bpp; ++j) {
-				dest[x + j] = (color >> 8 * (Bpp - 1 - j));
+				dest[x + j] = color_code[j];
 			}
 		}
 		dest += pfb->finfo.line_length;
@@ -329,17 +329,18 @@ OUT:
 	return ret;
 }
 
-static int fb_draw_rect(struct fb_object *pfb, int x0, int y0, int width,
-			int height, int color)
+static int fb_draw_rect(struct fb_object *pfb, struct fb_rect *prect,
+			    int color)
 {
 	int ret = -1;
-	if (!pfb || !pfb->framebuffer)
+	if (!pfb || !pfb->framebuffer || !prect)
 		goto OUT;
 
 	switch (pfb->vinfo.bits_per_pixel) {
 	case 32:
 	case 24:
-		draw_rect_rgb32(pfb, x0, y0, width, height, color);
+		draw_rect_rgb32(pfb, prect->x, prect->y, prect->width,
+				prect->height, color);
 		ret = 0;
 		break;
 	default:
@@ -351,6 +352,58 @@ static int fb_draw_rect(struct fb_object *pfb, int x0, int y0, int width,
 	/*define area that interest
 	 * only work in the case of fb rotate
 	 * function was enabled*/
+	pfb->vinfo.reserved[0] = 0;
+	pfb->vinfo.reserved[1] = 0;
+	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+	pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+	/*for compatiable purpose in the case fb rotate*/
+	ret = pfb->fb_device_pan_dispaly(pfb);
+#endif
+
+OUT:
+	return ret;
+}
+
+/**
+ * @name       fb_device_draw_pic
+ * @brief      draw bmp(rgb32) file to fb
+ * @param[IN]  pic_buf:pointer that store pic file
+ * @param[OUT] prect:pointer that spceifed the info of pic
+ * @return     of if success
+ */
+static int fb_device_draw_pic(struct fb_object *pfb, struct bmp_t *pbmp ,
+				  struct fb_rect *prect)
+{
+	int ret = -1;
+	if (!pfb || !pfb->fd || !pbmp->pic_fd ||!pfb->framebuffer)
+		goto OUT;
+	unsigned int offset =
+	    (prect->y + pfb->vinfo.yoffset) * pfb->finfo.line_length / 4 +
+	    (prect->x + pfb->vinfo.xoffset);
+
+	int *dest = (int*)pfb->framebuffer + offset;
+
+	unsigned long pic_size = pbmp->bmp_file_head.bfSize - (sizeof(struct BitMapFileHeader) +
+		  sizeof(struct BitMapInfoHeader));
+
+	if (pic_size > pfb->finfo.smem_len - offset ) {
+		printf("pic is too large\n");
+		goto OUT;
+	}
+	if (pbmp->bmp_info_head.biBitCount != 32) {
+		printf("Only support rgb32\n");
+		goto OUT;
+	}
+	fseek(pbmp->pic_fd,54,SEEK_SET);
+	while(!feof(pbmp->pic_fd)) {
+		ret = fread((void *)dest,prect->width*4,1, pbmp->pic_fd);
+		dest += pfb->finfo.line_length/4;
+	}
+
+#ifdef SUNXI_DISP2_FB_ROTATE
+	/*define area that interest*/
+	 /*only work in the case of fb rotate*/
+	 /*function was enabled*/
 	pfb->vinfo.reserved[0] = 0;
 	pfb->vinfo.reserved[1] = 0;
 	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
@@ -396,6 +449,7 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_draw_rect = fb_draw_rect;
 	p_obj->fb_clear_screen = fb_clear_screen;
 	p_obj->fb_device_blank = fb_device_blank;
+	p_obj->fb_device_draw_pic = fb_device_draw_pic;
 	ret = 0;
 OUT:
 	return ret;

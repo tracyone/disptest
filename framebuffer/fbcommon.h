@@ -37,8 +37,21 @@ extern "C" {
 #include <sys/time.h>
 #include <string.h>
 #include <sys/errno.h>
+#include <stdbool.h>
+#include "bmp.h"
 
 #define SUNXI_DISP2_FB_ROTATE
+
+
+/**
+ * rect
+ */
+struct fb_rect {
+	int x;  /*x cor*/
+	int y;
+	int width;
+	int height;
+};
 
 /**
  * fb ojecjt
@@ -61,10 +74,12 @@ struct fb_object {
 	int (*fb_device_set_vinfo)(struct fb_object *pfb);
 	int (*fb_device_get_finfo)(const struct fb_object *pfb);
 	int (*fb_device_pan_dispaly)(struct fb_object *pfb);
-	int (*fb_draw_rect)(struct fb_object *pfb, int x0, int y0, int width,
-			 int height, int color);
+	int (*fb_draw_rect)(struct fb_object *pfb, struct fb_rect *prect,
+			    int color);
 	int (*fb_clear_screen)(struct fb_object *pfb);
 	int (*fb_device_blank)(struct fb_object *pfb, int blank_mode);
+	int (*fb_device_draw_pic)(struct fb_object *pfb, struct bmp_t *pbmp ,
+				  struct fb_rect *prect);
 };
 
 /**
