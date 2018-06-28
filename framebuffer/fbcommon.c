@@ -315,21 +315,23 @@ static int fb_clear_screen(struct fb_object *pfb)
 
 	memset(pfb->framebuffer,0,pfb->finfo.smem_len);
 #ifdef SUNXI_DISP2_FB_ROTATE
-	/*define area that interest
-	 * only work in the case of fb rotate
-	 * function was enabled*/
-	pfb->vinfo.reserved[0] = 0;
-	pfb->vinfo.reserved[1] = 0;
-	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
-	pfb->vinfo.reserved[3] = pfb->vinfo.yres;
-	/*for compatiable purpose in the case fb rotate*/
-	ret = pfb->fb_device_pan_dispaly(pfb);
+	if (pfb->flush_fb_rotate_buffer) {
+		/*define area that interest
+		 * only work in the case of fb rotate
+		 * function was enabled*/
+		pfb->vinfo.reserved[0] = 0;
+		pfb->vinfo.reserved[1] = 0;
+		pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+		pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+		/*for compatiable purpose in the case fb rotate*/
+		ret = pfb->fb_device_pan_dispaly(pfb);
+	}
 #endif
 OUT:
 	return ret;
 }
 
-static int fb_draw_rect(struct fb_object *pfb, struct fb_rect *prect,
+static int fb_fill_rect(struct fb_object *pfb, struct fb_rect *prect,
 			    int color)
 {
 	int ret = -1;
@@ -349,15 +351,17 @@ static int fb_draw_rect(struct fb_object *pfb, struct fb_rect *prect,
 		break;
 	}
 #ifdef SUNXI_DISP2_FB_ROTATE
-	/*define area that interest
-	 * only work in the case of fb rotate
-	 * function was enabled*/
-	pfb->vinfo.reserved[0] = 0;
-	pfb->vinfo.reserved[1] = 0;
-	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
-	pfb->vinfo.reserved[3] = pfb->vinfo.yres;
-	/*for compatiable purpose in the case fb rotate*/
-	ret = pfb->fb_device_pan_dispaly(pfb);
+	if (pfb->flush_fb_rotate_buffer) {
+		/*define area that interest
+		 * only work in the case of fb rotate
+		 * function was enabled*/
+		pfb->vinfo.reserved[0] = 0;
+		pfb->vinfo.reserved[1] = 0;
+		pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+		pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+		/*for compatiable purpose in the case fb rotate*/
+		ret = pfb->fb_device_pan_dispaly(pfb);
+	}
 #endif
 
 OUT:
@@ -401,17 +405,108 @@ static int fb_device_draw_pic(struct fb_object *pfb, struct bmp_t *pbmp ,
 	}
 
 #ifdef SUNXI_DISP2_FB_ROTATE
-	/*define area that interest*/
-	 /*only work in the case of fb rotate*/
-	 /*function was enabled*/
-	pfb->vinfo.reserved[0] = 0;
-	pfb->vinfo.reserved[1] = 0;
-	pfb->vinfo.reserved[2] = pfb->vinfo.xres;
-	pfb->vinfo.reserved[3] = pfb->vinfo.yres;
-	/*for compatiable purpose in the case fb rotate*/
-	ret = pfb->fb_device_pan_dispaly(pfb);
+	if (pfb->flush_fb_rotate_buffer) {
+		/*define area that interest*/
+		/*only work in the case of fb rotate*/
+		/*function was enabled*/
+		pfb->vinfo.reserved[0] = 0;
+		pfb->vinfo.reserved[1] = 0;
+		pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+		pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+		/*for compatiable purpose in the case fb rotate*/
+		ret = pfb->fb_device_pan_dispaly(pfb);
+	}
 #endif
 
+OUT:
+	return ret;
+}
+
+/**
+ * @name       :fb_draw_line
+ * @brief      :draw line not support slash
+ * @param[IN]  :
+ * @param[OUT] :
+ * @return     :
+ */
+static int fb_draw_line(struct fb_object *pfb, struct fb_line *pline)
+{
+	int ret = -1;
+	int x,y;
+	struct fb_dot p;
+
+	if (!pfb || !pline || !pfb->framebuffer) {
+		loge("Null pointer!\n");
+		goto OUT;
+	}
+
+	memcpy(&p.color, &pline->color, sizeof(struct fb_rgb));
+
+	if ((pline->end.x != pline->start.x) &&
+	    (pline->end.y == pline->start.y)) {
+		for (x = MIN(pline->start.x, pline->end.x);
+		     x <= MAX(pline->start.x, pline->end.x); ++x) {
+			y = (pline->end.y - pline->start.y) *
+				(x - pline->start.x) /
+				(pline->end.x - pline->start.x) +
+			    pline->start.y;
+			p.x = x;
+			p.y = y;
+			pfb->fb_draw_dot(pfb, &p);
+		}
+	} else if ((pline->end.x == pline->start.x) &&
+	    (pline->end.y != pline->start.y)) {
+		for (y = MIN(pline->start.y, pline->end.y);
+		     y <= MAX(pline->start.y, pline->end.y); ++y) {
+			x = (pline->end.x - pline->start.x) *
+				(y - pline->start.y) /
+				(pline->end.y - pline->start.y) +
+				pline->start.x;
+			p.x = x;
+			p.y = y;
+			pfb->fb_draw_dot(pfb, &p);
+		}
+	} else {
+		loge("Not support slash\n");
+		goto OUT;
+	}
+
+	ret = 0;
+
+#ifdef SUNXI_DISP2_FB_ROTATE
+	if (pfb->flush_fb_rotate_buffer) {
+		/*define area that interest
+		 * only work in the case of fb rotate
+		 * function was enabled*/
+		pfb->vinfo.reserved[0] = 0;
+		pfb->vinfo.reserved[1] = 0;
+		pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+		pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+		/*for compatiable purpose in the case fb rotate*/
+		ret = pfb->fb_device_pan_dispaly(pfb);
+	}
+#endif
+OUT:
+	return ret;
+
+}
+
+static int fb_draw_dot(struct fb_object *pfb, struct fb_dot *pdot)
+{
+	int ret = -1;
+	if (!pfb || !pdot || !pfb->framebuffer) {
+		loge("Null pointer!\n");
+		goto OUT;
+	}
+	int Bpp = pfb->vinfo.bits_per_pixel / 8;
+
+	char *dest = pfb->framebuffer +
+		     (pdot->y + pfb->vinfo.yoffset) * pfb->finfo.line_length +
+		     (pdot->x + pfb->vinfo.xoffset) * Bpp;
+
+	memcpy(dest, &pdot->color, Bpp);
+
+	ret = 0;
 OUT:
 	return ret;
 }
@@ -446,11 +541,14 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_device_pan_dispaly = fb_device_pan_dispaly;
 	p_obj->fb_device_mmap = fb_device_mmap;
 	p_obj->fb_device_unmap = fb_device_unmap;
-	p_obj->fb_draw_rect = fb_draw_rect;
+	p_obj->fb_fill_rect = fb_fill_rect;
 	p_obj->fb_clear_screen = fb_clear_screen;
 	p_obj->fb_device_blank = fb_device_blank;
 	p_obj->fb_device_draw_pic = fb_device_draw_pic;
+	p_obj->fb_draw_dot = fb_draw_dot;
+	p_obj->fb_draw_line = fb_draw_line;
 	ret = 0;
+	p_obj->flush_fb_rotate_buffer = true;
 OUT:
 	return ret;
 }

@@ -37,6 +37,7 @@ extern "C" {
 #include <sys/time.h>
 #include <string.h>
 #include <sys/errno.h>
+#include <sys/param.h>
 #include <stdbool.h>
 #include "bmp.h"
 #include <debug.h>
@@ -55,12 +56,41 @@ struct fb_rect {
 };
 
 /**
+ * fb_rgb:define a color
+ */
+struct fb_rgb {
+	unsigned char blue;
+	unsigned char green;
+	unsigned char red;
+	unsigned char reserved;
+} __attribute__((packed)) ;
+
+/**
+ * fb_dot:a dot's coordinate and color
+ */
+struct fb_dot {
+	int x;
+	int y;
+	struct fb_rgb color;
+};
+
+/**
+ * fb_line
+ */
+struct fb_line {
+	struct fb_dot start;
+	struct fb_dot end;
+	struct fb_rgb color;
+};
+
+/**
  * fb ojecjt
  */
 struct fb_object {
 	int fd; /*fb fd*/
 	int fb_id;
 	char *framebuffer;
+	bool flush_fb_rotate_buffer;
 	struct fb_fix_screeninfo finfo;
 	struct fb_var_screeninfo vinfo;
 	int (*fb_object_init)(struct fb_object **pfb, int fb_id);
@@ -75,12 +105,14 @@ struct fb_object {
 	int (*fb_device_set_vinfo)(struct fb_object *pfb);
 	int (*fb_device_get_finfo)(const struct fb_object *pfb);
 	int (*fb_device_pan_dispaly)(struct fb_object *pfb);
-	int (*fb_draw_rect)(struct fb_object *pfb, struct fb_rect *prect,
+	int (*fb_fill_rect)(struct fb_object *pfb, struct fb_rect *prect,
 			    int color);
 	int (*fb_clear_screen)(struct fb_object *pfb);
 	int (*fb_device_blank)(struct fb_object *pfb, int blank_mode);
 	int (*fb_device_draw_pic)(struct fb_object *pfb, struct bmp_t *pbmp ,
 				  struct fb_rect *prect);
+	int (*fb_draw_dot)(struct fb_object *pfb, struct fb_dot *pdot);
+	int (*fb_draw_line)(struct fb_object *pfb, struct fb_line *pline);
 };
 
 /**

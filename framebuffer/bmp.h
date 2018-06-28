@@ -69,13 +69,6 @@ struct BitMapInfoHeader {
 	//...
 } __attribute__((packed)) ;
 
-//data rgb
-struct RgbQuad {
-	unsigned char Blue;
-	unsigned char Green;
-	unsigned char Red;
-	unsigned char Reserved;
-} __attribute__((packed)) ;
 
 /**
  * bmp object
@@ -83,7 +76,6 @@ struct RgbQuad {
 struct bmp_t {
 	struct BitMapFileHeader bmp_file_head;
 	struct BitMapInfoHeader bmp_info_head;
-	struct RgbQuad rgb_data;
 	char *pic_path;
 	FILE *pic_fd;
 	int real_height;
