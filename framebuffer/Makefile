@@ -1,4 +1,4 @@
-PROG := fbbmp fb_draw_rect fb_pan_display fb_blank
+PROG := fbbmp fb_draw_rect fb_pan_display fb_blank fbraw
 
 all:${PROG}
 	@echo "Start build fbtest"
@@ -15,6 +15,8 @@ fb_pan_display:fb_pan_display.c fbcommon.c
 
 fb_blank:fb_blank.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+fbraw:fbraw.c fbcommon.c
+	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 clean:
 	@echo "Start clean"
@@ -22,6 +24,7 @@ clean:
 	-@rm -f *.o
 install:
 	-@mkdir -p ${OUTDIR}/fbtest/
+	-scp ${PROG} ${SHARE_FOLDER}
 	-mv ${PROG} ${OUTDIR}/fbtest/
 
 .PHONY:clean all install

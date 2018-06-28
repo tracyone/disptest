@@ -45,6 +45,7 @@ extern "C" {
 #define SUNXI_DISP2_FB_ROTATE
 
 
+
 /**
  * rect
  */
@@ -53,6 +54,15 @@ struct fb_rect {
 	int y;
 	int width;
 	int height;
+};
+
+/**
+ * raw rgb file
+ */
+struct fbraw_t {
+	FILE *pic_fd;
+	struct fb_rect rect;
+	char *pic_path;
 };
 
 /**
@@ -113,6 +123,7 @@ struct fb_object {
 				  struct fb_rect *prect);
 	int (*fb_draw_dot)(struct fb_object *pfb, struct fb_dot *pdot);
 	int (*fb_draw_line)(struct fb_object *pfb, struct fb_line *pline);
+	int (*fb_device_draw_raw_pic)(struct fb_object *pfb, struct fbraw_t *praw);
 };
 
 /**

@@ -423,6 +423,54 @@ OUT:
 }
 
 /**
+ * @name       fb_device_draw_pic
+ * @brief      draw bmp(rgb32) file to fb
+ * @param[IN]  pic_buf:pointer that store pic file
+ * @param[OUT] prect:pointer that spceifed the info of pic
+ * @return     of if success
+ */
+static int fb_device_draw_raw_pic(struct fb_object *pfb, struct fbraw_t *praw)
+{
+	int ret = -1;
+	if (!pfb || !praw || !pfb->fd || !praw->pic_fd ||!pfb->framebuffer)
+		goto OUT;
+	unsigned int offset =
+	    (praw->rect.y + pfb->vinfo.yoffset) * pfb->finfo.line_length / 4 +
+	    (praw->rect.x + pfb->vinfo.xoffset);
+
+	int *dest = (int*)pfb->framebuffer + offset;
+
+	unsigned long pic_size = praw->rect.width * praw->rect.height * 4;
+
+	if (pic_size > pfb->finfo.smem_len - offset ) {
+		loge("pic is too large\n");
+		goto OUT;
+	}
+
+	while(!feof(praw->pic_fd)) {
+		ret = fread((void *)dest,praw->rect.width*4,1, praw->pic_fd);
+		dest += pfb->finfo.line_length/4;
+	}
+
+#ifdef SUNXI_DISP2_FB_ROTATE
+	if (pfb->flush_fb_rotate_buffer) {
+		/*define area that interest*/
+		/*only work in the case of fb rotate*/
+		/*function was enabled*/
+		pfb->vinfo.reserved[0] = 0;
+		pfb->vinfo.reserved[1] = 0;
+		pfb->vinfo.reserved[2] = pfb->vinfo.xres;
+		pfb->vinfo.reserved[3] = pfb->vinfo.yres;
+		/*for compatiable purpose in the case fb rotate*/
+		ret = pfb->fb_device_pan_dispaly(pfb);
+	}
+#endif
+
+OUT:
+	return ret;
+}
+
+/**
  * @name       :fb_draw_line
  * @brief      :draw line not support slash
  * @param[IN]  :
@@ -545,6 +593,7 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_clear_screen = fb_clear_screen;
 	p_obj->fb_device_blank = fb_device_blank;
 	p_obj->fb_device_draw_pic = fb_device_draw_pic;
+	p_obj->fb_device_draw_raw_pic = fb_device_draw_raw_pic;
 	p_obj->fb_draw_dot = fb_draw_dot;
 	p_obj->fb_draw_line = fb_draw_line;
 	ret = 0;
