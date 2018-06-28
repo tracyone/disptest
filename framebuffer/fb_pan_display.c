@@ -26,6 +26,13 @@ int main(int argc, char *argv[])
 	if (ret || !drawfb->framebuffer)
 		goto FREE_FB;
 
+	/*define area that interest
+	 * only work in the case of fb rotate
+	 * function was enabled*/
+	drawfb->vinfo.reserved[0] = 0;
+	drawfb->vinfo.reserved[1] = 0;
+	drawfb->vinfo.reserved[2] = drawfb->vinfo.xres;
+	drawfb->vinfo.reserved[3] = drawfb->vinfo.yres;
 
 	while(x < drawfb->vinfo.yres) {
 		drawfb->vinfo.xoffset = 0;

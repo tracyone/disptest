@@ -1,4 +1,4 @@
-PROG := fbbmp fb_draw_rect fb_pan_display fb_pan_display_rotate fb_blank
+PROG := fbbmp fb_draw_rect fb_pan_display fb_blank
 
 all:${PROG}
 	@echo "Start build fbtest"
@@ -9,11 +9,9 @@ fbbmp:fbbmp.c fbcommon.c bmp.c
 fb_draw_rect:fb_draw_rect.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
-fb_pan_display:fb_pan_display_test.c fbcommon.c
+fb_pan_display:fb_pan_display.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
-fb_pan_display_rotate:fb_pan_display_rotate.c fbcommon.c
-	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 fb_blank:fb_blank.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
