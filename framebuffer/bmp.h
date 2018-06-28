@@ -30,6 +30,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <debug.h>
 
 //file header
 struct BitMapFileHeader {

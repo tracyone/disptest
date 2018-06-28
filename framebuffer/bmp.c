@@ -28,13 +28,13 @@ static int bmp_open_file(struct bmp_t *pbmp)
 	int ret = -1;
 
 	if (!pbmp || !pbmp->pic_path) {
-		printf("%s:Null pointer\n", __func__);
+		loge("Null pointer\n");
 		goto OUT;
 	}
 
 	pbmp->pic_fd = fopen(pbmp->pic_path, "r+");
 	if (!pbmp->pic_fd) {
-		printf("%s:open %s fail\n", __func__, pbmp->pic_path);
+		loge("open %s fail\n", pbmp->pic_path);
 		goto OUT;
 	}
 
@@ -56,25 +56,25 @@ static int bmp_get_bmp_header(struct bmp_t *pbmp)
 	int ret = -1;
 
 	if (!pbmp || !pbmp->pic_fd) {
-		printf("%s:Null pointer\n", __func__);
+		loge("Null pointer\n");
 		goto OUT;
 	}
 
 	if (1 != fread(&pbmp->bmp_file_head, sizeof(struct BitMapFileHeader), 1,
 		       pbmp->pic_fd)) {
-		printf("read BitMapFileHeader error!\n");
+		loge("read BitMapFileHeader error!\n");
 		goto OUT;
 	}
 
 	if (pbmp->bmp_file_head.bfType[0] != 'B' ||
 	    pbmp->bmp_file_head.bfType[1] != 'M') {
-		printf("Not a bmp file\n");
+		loge("Not a bmp file\n");
 		goto OUT;
 	}
 
 	if (1 != fread((char *)&pbmp->bmp_info_head, sizeof(struct BitMapInfoHeader),
 		       1, pbmp->pic_fd)) {
-		printf("read BitMapInfoHeader error!\n");
+		loge("read BitMapInfoHeader error!\n");
 		goto OUT;
 	}
 
@@ -112,7 +112,7 @@ int bmp_init(struct bmp_t **pbmp)
 	*pbmp = malloc(sizeof(struct bmp_t));
 
 	if (!(*pbmp)) {
-		printf("Malloc bmp_t fail\n");
+		loge("Malloc bmp_t fail\n");
 		goto OUT;
 	}
 	p_obj = *pbmp;

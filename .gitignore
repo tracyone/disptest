@@ -3,3 +3,6 @@
 out/
 framebuffer/fbbmp
 framebuffer/fb_draw_rect
+framebuffer/fb_blank
+framebuffer/fb_pan_display
+framebuffer/fb_pan_display_rotate

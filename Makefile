@@ -15,6 +15,7 @@ export AR:=${LICHEE_TOOLCHAIN_PATH}/bin/${LICHEE_CROSS_COMPILER}-ar
 export LD:=${LICHEE_TOOLCHAIN_PATH}/bin/${LICHEE_CROSS_COMPILER}-ld
 export STIRP:=${LICHEE_TOOLCHAIN_PATH}/bin/${LICHEE_CROSS_COMPILER}-strip
 export OUTDIR:=$(PWD)/out
+export CFLAGS+=-I$(PWD)/include
 
 
 

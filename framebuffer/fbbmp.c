@@ -19,7 +19,7 @@
 
 void fbmp_usage()
 {
-	printf("fbbmp -path <bmp file path> [-x xoffset] [-y offset] [-h]\n");
+	loge("fbbmp -path <bmp file path> [-x xoffset] [-y offset] [-h]\n");
 }
 
 int parse_cmdline(int argc, char **argv, struct bmp_t *p)
@@ -37,13 +37,13 @@ int parse_cmdline(int argc, char **argv, struct bmp_t *p)
 				p->pic_path = (char*)malloc(strlen(argv[i] + 1));
 				if (!p->pic_path) {
 					++err;
-					printf("-path malloc error!\n");
+					loge("-path malloc error!\n");
 				} else {
 					sscanf(argv[i], "%s", p->pic_path);
 				}
 			}
 			else{
-				printf("-path para error!\n");
+				loge("-path para error!\n");
 				err++;
 			}
 		}

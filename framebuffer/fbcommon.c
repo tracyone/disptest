@@ -72,7 +72,7 @@ OUT:
 static void print_fixed_info(struct fb_object *pfb)
 {
 	if (pfb) {
-		printf("Fixed screen info:\n"
+		loge("Fixed screen info:\n"
 		       "\tid: %s\n"
 		       "\tsmem_start: 0x%lx\n"
 		       "\tsmem_len: %d\n"
@@ -95,7 +95,7 @@ static void print_fixed_info(struct fb_object *pfb)
 		       pfb->finfo.mmio_start, pfb->finfo.mmio_len,
 		       pfb->finfo.accel);
 	} else
-		printf("Fixed screen info:NULL pointer\n");
+		loge("Fixed screen info:NULL pointer\n");
 }
 
 /**
@@ -107,7 +107,7 @@ static void print_fixed_info(struct fb_object *pfb)
 static void print_var_info(struct fb_object *pfb)
 {
 	if (pfb) {
-		printf("Var screen info:\n"
+		loge("Var screen info:\n"
 		       "\txres: %d\n"
 		       "\tyres: %d\n"
 		       "\txres_virtual: %d\n"
@@ -156,7 +156,7 @@ static void print_var_info(struct fb_object *pfb)
 		       pfb->vinfo.reserved[0],pfb->vinfo.reserved[1],pfb->vinfo.reserved[2],pfb->vinfo.reserved[3]
 		       );
 	} else
-		printf("Var screen info:NULL pointer\n");
+		loge("Var screen info:NULL pointer\n");
 }
 
 static int fb_object_free(struct fb_object *pfb)
@@ -344,7 +344,7 @@ static int fb_draw_rect(struct fb_object *pfb, struct fb_rect *prect,
 		ret = 0;
 		break;
 	default:
-		printf("Warning: not impletement for color depth:%d\n",
+		loge("Warning: not impletement for color depth:%d\n",
 		       pfb->vinfo.bits_per_pixel);
 		break;
 	}
@@ -387,11 +387,11 @@ static int fb_device_draw_pic(struct fb_object *pfb, struct bmp_t *pbmp ,
 		  sizeof(struct BitMapInfoHeader));
 
 	if (pic_size > pfb->finfo.smem_len - offset ) {
-		printf("pic is too large\n");
+		loge("pic is too large\n");
 		goto OUT;
 	}
 	if (pbmp->bmp_info_head.biBitCount != 32) {
-		printf("Only support rgb32\n");
+		loge("Only support rgb32\n");
 		goto OUT;
 	}
 	fseek(pbmp->pic_fd,54,SEEK_SET);

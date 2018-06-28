@@ -39,6 +39,7 @@ extern "C" {
 #include <sys/errno.h>
 #include <stdbool.h>
 #include "bmp.h"
+#include <debug.h>
 
 #define SUNXI_DISP2_FB_ROTATE
 
