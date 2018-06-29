@@ -24,7 +24,6 @@ clean:
 	-@rm -f *.o
 install:
 	-@mkdir -p ${OUTDIR}/fbtest/
-	-scp ${PROG} ${SHARE_FOLDER}
 	-mv ${PROG} ${OUTDIR}/fbtest/
 
 .PHONY:clean all install

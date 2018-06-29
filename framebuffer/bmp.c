@@ -52,18 +52,18 @@ static int bmp_print_info(struct bmp_t *pbmp)
 	}
 
 	loge("\n"
-	     "File size:%d\n"
-	     "Bit per pixel:%d\n"
-	     "Width:%d\n"
-	     "Height:%d\n"
-	     "biSize:%d\n"
-	     "biPlanes:%d\n"
-	     "biCompression:%d\n"
-	     "zero_num:%d\n"
-	     "line length:%d\n"
-	     "offset:%d\n"
-	     "file header size:%d\n"
-	     "\n",
+	     "\tFile size:%d\n"
+	     "\tBit per pixel:%d\n"
+	     "\tWidth:%d\n"
+	     "\tHeight:%d\n"
+	     "\tbiSize:%d\n"
+	     "\tbiPlanes:%d\n"
+	     "\tbiCompression:%d\n"
+	     "\tzero_num:%d\n"
+	     "\tline length:%d\n"
+	     "\toffset:%d\n"
+	     "\tfile header size:%d\n"
+	     "\t\n",
 	     pbmp->bmp_file_head.bfSize,
 	     pbmp->bmp_info_head.biBitCount,
 	     pbmp->bmp_info_head.biWidth,

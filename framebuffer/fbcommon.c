@@ -387,6 +387,7 @@ static int fb_device_draw_raw_buf(struct fb_object *pfb, struct fb_raw_rgb *prgb
 	    (prgb->rect.x + pfb->vinfo.xoffset);
 
 	int *dest = (int*)pfb->framebuffer + offset;
+	int *src = (int*)prgb->buf;
 
 	unsigned long pic_size = prgb->rect.width * prgb->rect.height * 4;
 
@@ -396,8 +397,9 @@ static int fb_device_draw_raw_buf(struct fb_object *pfb, struct fb_raw_rgb *prgb
 	}
 
 	for (i = 0; i < prgb->rect.height; ++i) {
-		memcpy(dest, prgb->buf, prgb->rect.width*(pfb->vinfo.bits_per_pixel / 8));
-		dest += pfb->finfo.line_length/4;
+		memcpy(dest, src, prgb->rect.width*(pfb->vinfo.bits_per_pixel / 8));
+		dest += pfb->finfo.line_length/(pfb->vinfo.bits_per_pixel / 8);
+		src += prgb->rect.width;
 	}
 
 #ifdef SUNXI_DISP2_FB_ROTATE
@@ -589,6 +591,7 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_clear_screen = fb_clear_screen;
 	p_obj->fb_device_blank = fb_device_blank;
 	p_obj->fb_device_draw_raw_pic = fb_device_draw_raw_pic;
+	p_obj->fb_device_draw_raw_buf = fb_device_draw_raw_buf;
 	p_obj->fb_draw_dot = fb_draw_dot;
 	p_obj->fb_draw_line = fb_draw_line;
 	ret = 0;

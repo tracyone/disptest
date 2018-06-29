@@ -111,9 +111,8 @@ int main(int argc, char *argv[])
 	ret = pbmp->bmp_read_bmp(pbmp);
 	if (ret)
 		goto  FREE_FB;
-	ret = pbmp->bmp_rgb24_to_rgb32(pbmp);
-	if (ret)
-		goto  FREE_FB;
+	pbmp->bmp_print_info(pbmp);
+	pbmp->bmp_rgb24_to_rgb32(pbmp);
 	prgb->buf = pbmp->data_buf;
 
 	prgb->rect.x = 0;
