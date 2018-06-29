@@ -22,12 +22,12 @@ void fbmp_usage()
 	loge("fbbmp -path <bmp file path> [-x xoffset] [-y offset] [-h]\n");
 }
 
-int parse_cmdline(int argc, char **argv, struct bmp_t *p)
+int parse_cmdline(int argc, char **argv, struct bmp_t *p, struct fb_raw_rgb *prgb)
 {
 	int err = 0;
 	int i = 0;
 
-	if (!p)
+	if (!p || !prgb)
 		return -1;
 
 	while (i < argc) {
@@ -44,6 +44,28 @@ int parse_cmdline(int argc, char **argv, struct bmp_t *p)
 			}
 			else{
 				loge("-path para error!\n");
+				err++;
+			}
+		}
+
+		if ( ! strcmp(argv[i], "-x")) {
+			if (argc > i+1) {
+				i+=1;
+				prgb->rect.x = atoi(argv[i]);
+			}
+			else{
+				printf("-x para error!\n");
+				err++;
+			}
+		}
+
+		if ( ! strcmp(argv[i], "-y")) {
+			if (argc > i+1) {
+				i+=1;
+				prgb->rect.y = atoi(argv[i]);
+			}
+			else{
+				printf("-y para error!\n");
 				err++;
 			}
 		}
@@ -79,7 +101,7 @@ int main(int argc, char *argv[])
 	if (ret || !pbmp)
 		goto OUT;
 
-	ret = parse_cmdline(argc, argv, pbmp);
+	ret = parse_cmdline(argc, argv, pbmp, prgb);
 	if (ret)
 		goto FREE_BMP;
 
@@ -115,8 +137,6 @@ int main(int argc, char *argv[])
 	pbmp->bmp_rgb24_to_rgb32(pbmp);
 	prgb->buf = pbmp->data_buf;
 
-	prgb->rect.x = 0;
-	prgb->rect.y = 0;
 	prgb->rect.width = pbmp->bmp_info_head.biWidth;
 	prgb->rect.height = pbmp->real_height;
 
