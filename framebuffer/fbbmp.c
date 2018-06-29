@@ -68,8 +68,12 @@ int main(int argc, char *argv[])
 	int ret = 1;
 	struct fb_object *drawfb = NULL;
 	struct bmp_t *pbmp = NULL;
-	struct fb_rect rect;
-	memset(&rect, 0, sizeof(struct fb_rect));
+	struct fb_raw_rgb *prgb;
+
+	prgb = (struct fb_raw_rgb *)malloc(sizeof(struct fb_raw_rgb));
+	if (!prgb)
+		goto OUT;
+	memset(prgb, 0, sizeof(struct fb_raw_rgb));
 
 	ret = bmp_init(&pbmp);
 	if (ret || !pbmp)
@@ -104,16 +108,20 @@ int main(int argc, char *argv[])
 	ret = pbmp->bmp_open_file(pbmp);
 	if (ret)
 		goto  FREE_FB;
-	ret = pbmp->bmp_get_bmp_header(pbmp);
+	ret = pbmp->bmp_read_bmp(pbmp);
 	if (ret)
 		goto  FREE_FB;
+	ret = pbmp->bmp_rgb24_to_rgb32(pbmp);
+	if (ret)
+		goto  FREE_FB;
+	prgb->buf = pbmp->data_buf;
 
-	rect.x = drawfb->vinfo.xres / 2 - pbmp->bmp_info_head.biWidth / 2;
-	rect.y = drawfb->vinfo.yres / 2 - pbmp->real_height / 2;
-	rect.width = pbmp->bmp_info_head.biWidth;
-	rect.height = pbmp->real_height;
+	prgb->rect.x = 0;
+	prgb->rect.y = 0;
+	prgb->rect.width = pbmp->bmp_info_head.biWidth;
+	prgb->rect.height = pbmp->real_height;
 
-	ret = drawfb->fb_device_draw_pic(drawfb,pbmp,&rect);
+	ret = drawfb->fb_device_draw_raw_buf(drawfb,prgb);
 
 FREE_FB:
 	drawfb->fb_object_free(drawfb);

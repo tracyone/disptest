@@ -79,11 +79,14 @@ struct bmp_t {
 	char *pic_path;
 	FILE *pic_fd;
 	int real_height;
+	int zero_num;
+	int line_length;
+	unsigned char *data_buf;
 	int (*bmp_init)(struct bmp_t **pbmp);
 	int (*bmp_free)(struct bmp_t *pbmp);
 	int (*bmp_open_file)(struct bmp_t *pbmp);
 	int (*bmp_print_info)(struct bmp_t *pbmp);
-	int (*bmp_get_bmp_header)(struct bmp_t *pbmp);
+	int (*bmp_read_bmp)(struct bmp_t *pbmp);
 	int (*bmp_rgb24_to_rgb32)(struct bmp_t *pbmp);
 };
 

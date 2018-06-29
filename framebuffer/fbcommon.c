@@ -369,38 +369,34 @@ OUT:
 }
 
 /**
- * @name       fb_device_draw_pic
- * @brief      draw bmp(rgb32) file to fb
+ * @name       fb_device_draw_raw_buf
+ * @brief      draw bmp(rgb32) buf to fb
  * @param[IN]  pic_buf:pointer that store pic file
  * @param[OUT] prect:pointer that spceifed the info of pic
  * @return     of if success
  */
-static int fb_device_draw_pic(struct fb_object *pfb, struct bmp_t *pbmp ,
-				  struct fb_rect *prect)
+static int fb_device_draw_raw_buf(struct fb_object *pfb, struct fb_raw_rgb *prgb)
 {
-	int ret = -1;
-	if (!pfb || !pfb->fd || !pbmp->pic_fd ||!pfb->framebuffer)
+	int ret = -1, i = 0;
+	if (!pfb || !prgb || !pfb->fd  ||!pfb->framebuffer || !prgb->buf) {
+		loge("Null pointer\n");
 		goto OUT;
+	}
 	unsigned int offset =
-	    (prect->y + pfb->vinfo.yoffset) * pfb->finfo.line_length / 4 +
-	    (prect->x + pfb->vinfo.xoffset);
+	    (prgb->rect.y + pfb->vinfo.yoffset) * pfb->finfo.line_length / 4 +
+	    (prgb->rect.x + pfb->vinfo.xoffset);
 
 	int *dest = (int*)pfb->framebuffer + offset;
 
-	unsigned long pic_size = pbmp->bmp_file_head.bfSize - (sizeof(struct BitMapFileHeader) +
-		  sizeof(struct BitMapInfoHeader));
+	unsigned long pic_size = prgb->rect.width * prgb->rect.height * 4;
 
 	if (pic_size > pfb->finfo.smem_len - offset ) {
 		loge("pic is too large\n");
 		goto OUT;
 	}
-	if (pbmp->bmp_info_head.biBitCount != 32) {
-		loge("Only support rgb32\n");
-		goto OUT;
-	}
-	fseek(pbmp->pic_fd,54,SEEK_SET);
-	while(!feof(pbmp->pic_fd)) {
-		ret = fread((void *)dest,prect->width*4,1, pbmp->pic_fd);
+
+	for (i = 0; i < prgb->rect.height; ++i) {
+		memcpy(dest, prgb->buf, prgb->rect.width*(pfb->vinfo.bits_per_pixel / 8));
 		dest += pfb->finfo.line_length/4;
 	}
 
@@ -423,7 +419,7 @@ OUT:
 }
 
 /**
- * @name       fb_device_draw_pic
+ * @name       fb_device_draw_raw_pic
  * @brief      draw bmp(rgb32) file to fb
  * @param[IN]  pic_buf:pointer that store pic file
  * @param[OUT] prect:pointer that spceifed the info of pic
@@ -592,7 +588,6 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_fill_rect = fb_fill_rect;
 	p_obj->fb_clear_screen = fb_clear_screen;
 	p_obj->fb_device_blank = fb_device_blank;
-	p_obj->fb_device_draw_pic = fb_device_draw_pic;
 	p_obj->fb_device_draw_raw_pic = fb_device_draw_raw_pic;
 	p_obj->fb_draw_dot = fb_draw_dot;
 	p_obj->fb_draw_line = fb_draw_line;

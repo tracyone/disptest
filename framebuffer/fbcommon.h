@@ -39,7 +39,6 @@ extern "C" {
 #include <sys/errno.h>
 #include <sys/param.h>
 #include <stdbool.h>
-#include "bmp.h"
 #include <debug.h>
 
 #define SUNXI_DISP2_FB_ROTATE
@@ -54,6 +53,14 @@ struct fb_rect {
 	int y;
 	int width;
 	int height;
+};
+
+/**
+ * raw rgb file
+ */
+struct fb_raw_rgb {
+	unsigned char* buf;
+	struct fb_rect rect;
 };
 
 /**
@@ -119,11 +126,10 @@ struct fb_object {
 			    int color);
 	int (*fb_clear_screen)(struct fb_object *pfb);
 	int (*fb_device_blank)(struct fb_object *pfb, int blank_mode);
-	int (*fb_device_draw_pic)(struct fb_object *pfb, struct bmp_t *pbmp ,
-				  struct fb_rect *prect);
 	int (*fb_draw_dot)(struct fb_object *pfb, struct fb_dot *pdot);
 	int (*fb_draw_line)(struct fb_object *pfb, struct fb_line *pline);
 	int (*fb_device_draw_raw_pic)(struct fb_object *pfb, struct fbraw_t *praw);
+	int (*fb_device_draw_raw_buf)(struct fb_object *pfb, struct fb_raw_rgb *prgb);
 };
 
 /**

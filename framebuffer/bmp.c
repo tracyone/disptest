@@ -50,22 +50,32 @@ static int bmp_print_info(struct bmp_t *pbmp)
 		loge("Null pointer");
 		goto OUT;
 	}
+
 	loge("\n"
 	     "File size:%d\n"
 	     "Bit per pixel:%d\n"
-	     "Height:%d\n"
 	     "Width:%d\n"
+	     "Height:%d\n"
 	     "biSize:%d\n"
 	     "biPlanes:%d\n"
 	     "biCompression:%d\n"
+	     "zero_num:%d\n"
+	     "line length:%d\n"
+	     "offset:%d\n"
+	     "file header size:%d\n"
 	     "\n",
 	     pbmp->bmp_file_head.bfSize,
 	     pbmp->bmp_info_head.biBitCount,
-	     pbmp->bmp_info_head.biHeight,
 	     pbmp->bmp_info_head.biWidth,
+	     pbmp->bmp_info_head.biHeight,
 	     pbmp->bmp_info_head.biSize,
 	     pbmp->bmp_info_head.biPlanes,
-	     pbmp->bmp_info_head.biCompression);
+	     pbmp->bmp_info_head.biCompression,
+	     pbmp->zero_num,
+	     pbmp->line_length,
+	     pbmp->bmp_file_head.bfOffBits,
+	     pbmp->bmp_info_head.biSize
+	     );
 
 	ret = 0;
 OUT:
@@ -73,13 +83,12 @@ OUT:
 }
 
 /**
- * @name       :bmp_get_bmp_header
- * @brief      :get bmp header from file
- * @param[IN]  :
- * @param[OUT] :
- * @return     :
+ * @name       :bmp_read_bmp
+ * @brief      :read bmp from file
+ * @param[IN]  :pbmp:
+ * @return     :0 if success
  */
-static int bmp_get_bmp_header(struct bmp_t *pbmp)
+static int bmp_read_bmp(struct bmp_t *pbmp)
 {
 	int ret = -1;
 
@@ -105,10 +114,26 @@ static int bmp_get_bmp_header(struct bmp_t *pbmp)
 		loge("read BitMapInfoHeader error!\n");
 		goto OUT;
 	}
+	if (pbmp->bmp_info_head.biBitCount == 24) {
+		pbmp->zero_num = (4 - ((3 * pbmp->bmp_info_head.biWidth) % 4)) & 3;
+	} else
+		pbmp->zero_num = 0;
+
+	pbmp->line_length =
+	    pbmp->bmp_info_head.biWidth * (pbmp->bmp_info_head.biBitCount / 8) +
+	    pbmp->zero_num;
 
 	pbmp->real_height = (pbmp->bmp_info_head.biHeight < 0)
 				? (-pbmp->bmp_info_head.biHeight)
 				: pbmp->bmp_info_head.biHeight;
+
+	pbmp->data_buf =
+		(unsigned char*)malloc(pbmp->bmp_file_head.bfSize - pbmp->bmp_file_head.bfOffBits);
+
+	ret = fread(pbmp->data_buf,
+		    pbmp->bmp_file_head.bfSize - pbmp->bmp_file_head.bfOffBits, 1,
+		    pbmp->pic_fd);
+
 
 	ret = 0;
 
@@ -124,11 +149,86 @@ int bmp_free(struct bmp_t *pbmp)
 			fclose(pbmp->pic_fd);
 		if (pbmp->pic_path)
 			free(pbmp->pic_path);
+		if (pbmp->data_buf)
+			free(pbmp->data_buf);
 		free(pbmp);
 		pbmp = NULL;
 		ret = 0;
 	}
 
+	return ret;
+}
+
+int bmp_rgb24_to_rgb32(struct bmp_t *pbmp)
+{
+	int ret = -1;
+	int i ,j ;
+	int srclinesize = 0, dstlinesize = 0;
+	unsigned char *pdst = NULL;
+	unsigned char *psrcline = NULL, *pdstline = NULL;
+	unsigned char *psrcdot = NULL, *pdstdot = NULL;
+
+	if (!pbmp || !pbmp->pic_fd || !pbmp->data_buf) {
+		loge("Null pointer\n");
+		goto OUT;
+	}
+
+	if (pbmp->bmp_info_head.biBitCount != 24 ||
+	    pbmp->bmp_info_head.biBitCount == 32) {
+		loge("bit per pixe is :%d No need to convert\n",
+		     pbmp->bmp_info_head.biBitCount);
+		goto OUT;
+	}
+	srclinesize = pbmp->line_length;
+	dstlinesize = pbmp->bmp_info_head.biWidth * 4;
+	pdst = (unsigned char *)malloc(pbmp->bmp_info_head.biWidth *
+				       pbmp->real_height * 4);
+
+	if (pbmp->bmp_info_head.biHeight & 0x80000000) {
+		psrcline = (unsigned char *)pbmp->data_buf;
+		pdstline = (unsigned char *)pdst;
+		for (i = 0; i < pbmp->real_height; ++i) {
+			psrcdot = psrcline;
+			pdstdot = pdstline;
+			for (j = 0; j < pbmp->bmp_info_head.biWidth; ++j) {
+				*pdstdot++ = psrcdot[j*3];
+				*pdstdot++ = psrcdot[j*3+1];
+				*pdstdot++ = psrcdot[j*3+2];
+				*pdstdot++ = 0xff;
+			}
+			psrcline += srclinesize;
+			pdstline += dstlinesize;
+		}
+	} else {
+		psrcline = (unsigned char *)pbmp->data_buf +(pbmp->real_height - 1)*pbmp->line_length;;
+		pdstline = (unsigned char *)pdst;
+		for (i = 0; i < pbmp->real_height; ++i) {
+			psrcdot = psrcline;
+			pdstdot = pdstline;
+			for (j = 0; j < pbmp->bmp_info_head.biWidth; ++j) {
+				*pdstdot++ = psrcdot[j*3];
+				*pdstdot++ = psrcdot[j*3+1];
+				*pdstdot++ = psrcdot[j*3+2];
+				*pdstdot++ = 0xff;
+			}
+			psrcline -= srclinesize;
+			pdstline += dstlinesize;
+		}
+	}
+
+	free(pbmp->data_buf);
+	pbmp->data_buf = (unsigned char *)malloc(pbmp->bmp_info_head.biWidth *
+				       pbmp->real_height * 4);
+	if (!pbmp->data_buf)
+		loge("malloc data_buf fail\n");
+	else {
+		memcpy(pbmp->data_buf, pdst,
+		       pbmp->bmp_info_head.biWidth * pbmp->real_height * 4);
+		ret = 0;
+	}
+	
+	free(pdst);
+OUT:
 	return ret;
 }
 
@@ -146,11 +246,12 @@ int bmp_init(struct bmp_t **pbmp)
 	p_obj = *pbmp;
 	memset(p_obj, 0, sizeof(struct bmp_t));
 
-	p_obj->bmp_get_bmp_header = bmp_get_bmp_header;
+	p_obj->bmp_read_bmp = bmp_read_bmp;
 	p_obj->bmp_open_file = bmp_open_file;
 	p_obj->bmp_init = bmp_init;
 	p_obj->bmp_free = bmp_free;
 	p_obj->bmp_print_info = bmp_print_info;
+	p_obj->bmp_rgb24_to_rgb32 = bmp_rgb24_to_rgb32;
 	ret = 0;
 OUT:
 	return ret;
