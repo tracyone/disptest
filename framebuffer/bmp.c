@@ -43,6 +43,34 @@ static int bmp_open_file(struct bmp_t *pbmp)
 OUT:
 	return ret;
 }
+static int bmp_print_info(struct bmp_t *pbmp)
+{
+	int ret = -1;
+	if (!pbmp || !pbmp->pic_fd) {
+		loge("Null pointer");
+		goto OUT;
+	}
+	loge("\n"
+	     "File size:%d\n"
+	     "Bit per pixel:%d\n"
+	     "Height:%d\n"
+	     "Width:%d\n"
+	     "biSize:%d\n"
+	     "biPlanes:%d\n"
+	     "biCompression:%d\n"
+	     "\n",
+	     pbmp->bmp_file_head.bfSize,
+	     pbmp->bmp_info_head.biBitCount,
+	     pbmp->bmp_info_head.biHeight,
+	     pbmp->bmp_info_head.biWidth,
+	     pbmp->bmp_info_head.biSize,
+	     pbmp->bmp_info_head.biPlanes,
+	     pbmp->bmp_info_head.biCompression);
+
+	ret = 0;
+OUT:
+	return ret;
+}
 
 /**
  * @name       :bmp_get_bmp_header
@@ -122,6 +150,7 @@ int bmp_init(struct bmp_t **pbmp)
 	p_obj->bmp_open_file = bmp_open_file;
 	p_obj->bmp_init = bmp_init;
 	p_obj->bmp_free = bmp_free;
+	p_obj->bmp_print_info = bmp_print_info;
 	ret = 0;
 OUT:
 	return ret;

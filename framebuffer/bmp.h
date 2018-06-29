@@ -22,7 +22,6 @@
 
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <linux/fb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,41 +30,42 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <debug.h>
+#include <stdint.h>
 
 //file header
 struct BitMapFileHeader {
-	unsigned char bfType[2];
+	uint8_t bfType[2];
 	//file type
-	unsigned long bfSize;
+	uint32_t bfSize;
 	//bmp file size
-	unsigned short bfReserved1;
-	unsigned short bfReserved2;
-	unsigned long bfOffBits;
+	uint16_t bfReserved1;
+	uint16_t bfReserved2;
+	uint32_t bfOffBits;
 } __attribute__((packed)) ;
 
 //infomation head
 struct BitMapInfoHeader {
-	unsigned long biSize;
+	uint32_t biSize;
 	// file header size
-	long biWidth;
+	int32_t biWidth;
 	//bmp width
-	long biHeight;
+	int32_t biHeight;
 	//bmp height
-	unsigned short biPlanes;
+	uint16_t biPlanes;
 	//always 1
-	unsigned short biBitCount;
+	uint16_t biBitCount;
 	//bit per pixel
-	unsigned long biCompression;
+	uint32_t biCompression;
 	//always BI_RGB
-	unsigned long biSizeImage;
+	uint32_t biSizeImage;
 	//bmp size, unit:byte
-	long biXPelsPerMeter;
+	int32_t biXPelsPerMeter;
 	//x resolution
-	long biYPelsPerMeter;
+	int32_t biYPelsPerMeter;
 	//y resolution
-	unsigned long biClrUsed;
+	uint32_t biClrUsed;
 	//color index
-	unsigned long biClrImportant;
+	uint32_t biClrImportant;
 	//...
 } __attribute__((packed)) ;
 
@@ -82,6 +82,7 @@ struct bmp_t {
 	int (*bmp_init)(struct bmp_t **pbmp);
 	int (*bmp_free)(struct bmp_t *pbmp);
 	int (*bmp_open_file)(struct bmp_t *pbmp);
+	int (*bmp_print_info)(struct bmp_t *pbmp);
 	int (*bmp_get_bmp_header)(struct bmp_t *pbmp);
 	int (*bmp_rgb24_to_rgb32)(struct bmp_t *pbmp);
 };
