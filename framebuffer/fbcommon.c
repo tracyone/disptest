@@ -38,7 +38,8 @@ static int fb_device_open(struct fb_object *pfb)
 	pfb->fd = open(fbname, O_RDWR);
 	ret = pfb->fd;
 	if (ret < 0)
-		perror("\n");
+		loge("%s\n", strerror(errno));
+		
 OUT:
 	return ret;
 }
@@ -58,7 +59,7 @@ static int fb_device_close(struct fb_object *pfb)
 	snprintf(fbname, 40, "/dev/fb%d", pfb->fb_id);
 	ret = close(pfb->fd);
 	if (ret < 0)
-		perror("\n");
+		loge("%s\n", strerror(errno));
 OUT:
 	return ret;
 }
@@ -163,7 +164,7 @@ static int fb_object_free(struct fb_object *pfb)
 {
 	int ret = -1;
 	if (pfb) {
-		if (pfb->fb_id >= 0)
+		if (pfb->fb_id > 0)
 			pfb->fb_device_close(pfb);
 		if (pfb->framebuffer)
 			pfb->fb_device_unmap(pfb);

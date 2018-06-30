@@ -40,6 +40,7 @@ extern "C" {
 #include <sys/param.h>
 #include <stdbool.h>
 #include <debug.h>
+#include <error.h>
 
 #define SUNXI_DISP2_FB_ROTATE
 

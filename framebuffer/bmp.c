@@ -63,6 +63,7 @@ static int bmp_print_info(struct bmp_t *pbmp)
 	     "\tline length:%d\n"
 	     "\toffset:%d\n"
 	     "\tfile header size:%d\n"
+	     "\traw image size:%d\n"
 	     "\t\n",
 	     pbmp->bmp_file_head.bfSize,
 	     pbmp->bmp_info_head.biBitCount,
@@ -74,7 +75,8 @@ static int bmp_print_info(struct bmp_t *pbmp)
 	     pbmp->zero_num,
 	     pbmp->line_length,
 	     pbmp->bmp_file_head.bfOffBits,
-	     pbmp->bmp_info_head.biSize
+	     pbmp->bmp_info_head.biSize,
+	     pbmp->bmp_info_head.biSizeImage
 	     );
 
 	ret = 0;
@@ -232,6 +234,70 @@ OUT:
 	return ret;
 }
 
+int bmp_gen_bmp_file(struct bmp_t *pbmp, int width, int height, int bitcount)
+{
+	int ret = -1;
+
+	if (!pbmp || !pbmp->pic_path) {
+		loge("Null pointer\n");
+		goto OUT;
+	}
+	if (!pbmp->data_buf) {
+		loge("Please fill some rgb data to pbmp->data_buf\n");
+		goto OUT;
+	}
+
+	if (!width || !height || (bitcount != 24 && bitcount != 32)) {
+		loge("Invalid param! only rgb32 and rgb24 is support!");
+		goto OUT;
+	}
+
+	pbmp->zero_num = (4 - ((3 * width) % 4)) & 3;
+	pbmp->line_length = width * bitcount / 8 + pbmp->zero_num;
+
+	pbmp->pic_fd = fopen(pbmp->pic_path, "w+");
+	if (!pbmp->pic_fd) {
+		loge("open %s fail\n", pbmp->pic_path);
+		goto OUT;
+	}
+
+	pbmp->bmp_file_head.bfType[0] = 'B';
+	pbmp->bmp_file_head.bfType[1] = 'M';
+	pbmp->bmp_file_head.bfOffBits = 54;
+	pbmp->bmp_file_head.bfSize = pbmp->line_length * height + 54;
+
+	ret = fwrite(&pbmp->bmp_file_head, sizeof(struct BitMapFileHeader), 1,
+	       pbmp->pic_fd);
+	if (ret != 1)
+		loge("fwrite:%s\n",strerror(errno));
+
+	pbmp->bmp_info_head.biBitCount = bitcount;
+	pbmp->bmp_info_head.biHeight = -height;
+	pbmp->bmp_info_head.biWidth = width;
+	pbmp->bmp_info_head.biSize = sizeof(struct BitMapInfoHeader);
+	pbmp->bmp_info_head.biPlanes = 1;
+	pbmp->bmp_info_head.biCompression = 0;
+	pbmp->bmp_info_head.biSizeImage = pbmp->line_length * height;
+
+	ret = fwrite(&pbmp->bmp_info_head, sizeof(struct BitMapInfoHeader), 1,
+	       pbmp->pic_fd);
+	if (ret != 1)
+		loge("fwrite:%s\n",strerror(errno));
+
+	ret = fwrite(pbmp->data_buf, pbmp->bmp_info_head.biSizeImage, 1,
+	       pbmp->pic_fd);
+	if (ret != 1)
+		loge("fwrite:%s\n",strerror(errno));
+	else
+		ret = 0;
+
+	pbmp->data_buf = NULL;
+
+OUT:
+	return ret;
+
+}
+
 int bmp_init(struct bmp_t **pbmp)
 {
 	int ret = -1;
@@ -252,6 +318,7 @@ int bmp_init(struct bmp_t **pbmp)
 	p_obj->bmp_free = bmp_free;
 	p_obj->bmp_print_info = bmp_print_info;
 	p_obj->bmp_rgb24_to_rgb32 = bmp_rgb24_to_rgb32;
+	p_obj->bmp_gen_bmp_file = bmp_gen_bmp_file;
 	ret = 0;
 OUT:
 	return ret;

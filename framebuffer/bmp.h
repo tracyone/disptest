@@ -31,6 +31,7 @@
 #include <stdbool.h>
 #include <debug.h>
 #include <stdint.h>
+#include <errno.h>
 
 //file header
 struct BitMapFileHeader {
@@ -88,6 +89,7 @@ struct bmp_t {
 	int (*bmp_print_info)(struct bmp_t *pbmp);
 	int (*bmp_read_bmp)(struct bmp_t *pbmp);
 	int (*bmp_rgb24_to_rgb32)(struct bmp_t *pbmp);
+	int (*bmp_gen_bmp_file)(struct bmp_t *pbmp, int width, int height, int bitcount);
 };
 
 int bmp_init(struct bmp_t **pbmp);
