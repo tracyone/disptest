@@ -26,8 +26,8 @@ clean:
 	-@rm -f ${PROG}
 	-@rm -f *.o
 install:
-	-@mkdir -p ${OUTDIR}/fbtest/
-	-mv ${PROG} ${OUTDIR}/fbtest/
+	-@mkdir -p ${OUT_DIR}/fbtest/
+	-mv ${PROG} ${OUT_DIR}/fbtest/
 
 .PHONY:clean all install
 
