@@ -160,6 +160,111 @@ static void print_var_info(struct fb_object *pfb)
 		loge("Var screen info:NULL pointer\n");
 }
 
+static int disp_fb_to_var(enum fb_pixel_format format,
+			  struct fb_var_screeninfo *var)
+{
+	switch (format) {
+	case FB_FORMAT_ARGB8888:
+		var->bits_per_pixel = 32;
+		var->transp.length = 8;
+		var->red.length = 8;
+		var->green.length = 8;
+		var->blue.length = 8;
+		var->blue.offset = 0;
+		var->green.offset = var->blue.offset + var->blue.length;
+		var->red.offset = var->green.offset + var->green.length;
+		var->transp.offset = var->red.offset + var->red.length;
+		break;
+	case FB_FORMAT_ABGR8888:
+		var->bits_per_pixel = 32;
+		var->transp.length = 8;
+		var->red.length = 8;
+		var->green.length = 8;
+		var->blue.length = 8;
+		var->red.offset = 0;
+		var->green.offset = var->red.offset + var->red.length;
+		var->blue.offset = var->green.offset + var->green.length;
+		var->transp.offset = var->blue.offset + var->blue.length;
+		break;
+	case FB_FORMAT_RGBA8888:
+		var->bits_per_pixel = 32;
+		var->transp.length = 8;
+		var->red.length = 8;
+		var->green.length = 8;
+		var->blue.length = 8;
+		var->transp.offset = 0;
+		var->blue.offset = var->transp.offset + var->transp.length;
+		var->green.offset = var->blue.offset + var->blue.length;
+		var->red.offset = var->green.offset + var->green.length;
+		break;
+	case FB_FORMAT_BGRA8888:
+		var->bits_per_pixel = 32;
+		var->transp.length = 8;
+		var->red.length = 8;
+		var->green.length = 8;
+		var->blue.length = 8;
+		var->transp.offset = 0;
+		var->red.offset = var->transp.offset + var->transp.length;
+		var->green.offset = var->red.offset + var->red.length;
+		var->blue.offset = var->green.offset + var->green.length;
+		break;
+	case FB_FORMAT_RGB888:
+		var->bits_per_pixel = 24;
+		var->red.length = 8;
+		var->green.length = 8;
+		var->blue.length = 8;
+		var->blue.offset = 0;
+		var->green.offset = var->blue.offset + var->blue.length;
+		var->red.offset = var->green.offset + var->green.length;
+
+		break;
+	case FB_FORMAT_BGR888:
+		var->bits_per_pixel = 24;
+		var->transp.length = 0;
+		var->red.length = 8;
+		var->green.length = 8;
+		var->blue.length = 8;
+		var->red.offset = 0;
+		var->green.offset = var->red.offset + var->red.length;
+		var->blue.offset = var->green.offset + var->green.length;
+
+		break;
+	case FB_FORMAT_RGB565:
+		var->bits_per_pixel = 16;
+		var->transp.length = 0;
+		var->red.length = 5;
+		var->green.length = 6;
+		var->blue.length = 5;
+		var->blue.offset = 0;
+		var->green.offset = var->blue.offset + var->blue.length;
+		var->red.offset = var->green.offset + var->green.length;
+
+		break;
+	case FB_FORMAT_BGR565:
+		var->bits_per_pixel = 16;
+		var->transp.length = 0;
+		var->red.length = 5;
+		var->green.length = 6;
+		var->blue.length = 5;
+		var->red.offset = 0;
+		var->green.offset = var->red.offset + var->red.length;
+		var->blue.offset = var->green.offset + var->green.length;
+
+		break;
+	default:
+		loge("Not support format %d\n", format);
+	}
+
+	loge("fmt%d para: %dbpp, a(%d,%d),r(%d,%d),g(%d,%d),b(%d,%d)\n",
+	     (int)format, (int)var->bits_per_pixel, (int)var->transp.offset,
+	     (int)var->transp.length, (int)var->red.offset,
+	     (int)var->red.length, (int)var->green.offset,
+	     (int)var->green.length, (int)var->blue.offset,
+	     (int)var->blue.length);
+
+	return 0;
+}
+
 static int fb_object_free(struct fb_object *pfb)
 {
 	int ret = -1;
@@ -278,7 +383,7 @@ static void draw_rect_rgb32(struct fb_object *pfb, int x0, int y0, int width,
 	int x, y, j;
 	unsigned char color_code[4];
 	/*argb to bgra*/
-	for (x = 0; x < 4; ++x)
+	for (x = 0; x < Bpp; ++x)
 		color_code[x] = (color >> (8*x));
 
 	for (y = 0; y < height; ++y) {
@@ -557,6 +662,25 @@ static int fb_draw_dot(struct fb_object *pfb, struct fb_dot *pdot)
 OUT:
 	return ret;
 }
+static int fb_set_pixformat(struct fb_object *pfb, enum fb_pixel_format format)
+{
+	int ret = -1;
+	if (!pfb) {
+		loge("Null pointer!\n");
+		goto OUT;
+	}
+
+
+	disp_fb_to_var(format, &pfb->vinfo);
+	/*pfb->finfo.line_length = (pfb->vinfo.bits_per_pixel / 8) * pfb->vinfo.xres;*/
+	pfb->vinfo.activate = FB_ACTIVATE_NOW;
+
+	pfb->fb_device_set_vinfo(pfb);
+
+	ret = 0;
+OUT:
+	return ret;
+}
 
 /**
  * @name       fb_object_init
@@ -595,6 +719,7 @@ int fb_object_init(struct fb_object **pfb, int fb_id)
 	p_obj->fb_device_draw_raw_buf = fb_device_draw_raw_buf;
 	p_obj->fb_draw_dot = fb_draw_dot;
 	p_obj->fb_draw_line = fb_draw_line;
+	p_obj->fb_set_pixformat = fb_set_pixformat;
 	ret = 0;
 	p_obj->flush_fb_rotate_buffer = true;
 OUT:

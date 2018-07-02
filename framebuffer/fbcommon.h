@@ -101,6 +101,20 @@ struct fb_line {
 	struct fb_rgb color;
 };
 
+#define FOURCC(a, b, c, d) ((__u32)(a) | ((__u32)(b) << 8) | \
+				 ((__u32)(c) << 16) | ((__u32)(d) << 24))
+
+enum fb_pixel_format{
+	FB_FORMAT_ARGB8888=FOURCC('A', 'R', '2', '4'), /* [31:0] A:R:G:B 8:8:8:8 little endian */
+	FB_FORMAT_ABGR8888=FOURCC('A', 'B', '2', '4'), /* [31:0] A:B:G:R 8:8:8:8 little endian */
+	FB_FORMAT_RGBA8888=FOURCC('R', 'A', '2', '4'), /* [31:0] R:G:B:A 8:8:8:8 little endian */
+	FB_FORMAT_BGRA8888=FOURCC('B', 'A', '2', '4'), /* [31:0] B:G:R:A 8:8:8:8 little endian */
+	FB_FORMAT_RGB888=FOURCC('R', 'G', '2', '4'), /* [23:0] R:G:B little endian */
+	FB_FORMAT_BGR888=FOURCC('B', 'G', '2', '4'), /* [23:0] B:G:R little endian */
+	FB_FORMAT_RGB565=FOURCC('R', 'G', '1', '6'), /* [15:0] R:G:B 5:6:5 little endian */
+	FB_FORMAT_BGR565=FOURCC('B', 'G', '1', '6'), /* [15:0] B:G:R 5:6:5 little endian */
+};
+
 /**
  * fb ojecjt
  */
@@ -131,6 +145,7 @@ struct fb_object {
 	int (*fb_draw_line)(struct fb_object *pfb, struct fb_line *pline);
 	int (*fb_device_draw_raw_pic)(struct fb_object *pfb, struct fbraw_t *praw);
 	int (*fb_device_draw_raw_buf)(struct fb_object *pfb, struct fb_raw_rgb *prgb);
+	int (*fb_set_pixformat)(struct fb_object *pfb, enum fb_pixel_format fmt);
 };
 
 /**

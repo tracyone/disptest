@@ -34,7 +34,7 @@ int parse_cmdline(int argc, char **argv, struct bmp_t *p, int *fb_id)
 		if ( ! strcmp(argv[i], "-path")) {
 			if (argc > i+1) {
 				i+=1;
-				p->pic_path = (char*)malloc(strlen(argv[i] + 1));
+				p->pic_path = (char*)malloc(strlen(argv[i]) + 1);
 				if (!p->pic_path) {
 					++err;
 					loge("-path malloc error!\n");

@@ -1,4 +1,4 @@
-PROG := fbbmp fb_draw_rect fb_pan_display fb_blank fbraw fb_cap
+PROG := fbbmp fb_draw_rect fb_pan_display fb_blank fbraw fb_cap fb_set_format
 
 all:${PROG}
 	@echo "Start build fbtest"
@@ -19,6 +19,10 @@ fbraw:fbraw.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 fb_cap:fb_cap.c bmp.c fbcommon.c
+	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
+
+fb_set_format:fb_set_format.c fbcommon.c
 	$(CC) -Wall $(CFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 clean:

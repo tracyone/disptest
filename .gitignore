@@ -8,3 +8,4 @@ framebuffer/fb_pan_display
 framebuffer/fb_pan_display_rotate
 framebuffer/fbraw
 framebuffer/fb_cap
+framebuffer/fb_set_format

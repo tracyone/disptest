@@ -34,7 +34,7 @@ int parse_cmdline(int argc, char **argv, struct bmp_t *p, struct fb_raw_rgb *prg
 		if ( ! strcmp(argv[i], "-path")) {
 			if (argc > i+1) {
 				i+=1;
-				p->pic_path = (char*)malloc(strlen(argv[i] + 1));
+				p->pic_path = (char*)malloc(strlen(argv[i]) + 1);
 				if (!p->pic_path) {
 					++err;
 					loge("-path malloc error!\n");
@@ -134,7 +134,10 @@ int main(int argc, char *argv[])
 	if (ret)
 		goto  FREE_FB;
 	pbmp->bmp_print_info(pbmp);
-	pbmp->bmp_rgb24_to_rgb32(pbmp);
+
+	if (drawfb->vinfo.bits_per_pixel == 32)
+		pbmp->bmp_rgb24_to_rgb32(pbmp);
+
 	prgb->buf = pbmp->data_buf;
 
 	prgb->rect.width = pbmp->bmp_info_head.biWidth;
