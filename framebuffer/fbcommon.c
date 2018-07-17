@@ -662,6 +662,7 @@ static int fb_draw_dot(struct fb_object *pfb, struct fb_dot *pdot)
 OUT:
 	return ret;
 }
+
 static int fb_set_pixformat(struct fb_object *pfb, enum fb_pixel_format format)
 {
 	int ret = -1;
@@ -672,8 +673,7 @@ static int fb_set_pixformat(struct fb_object *pfb, enum fb_pixel_format format)
 
 
 	disp_fb_to_var(format, &pfb->vinfo);
-	/*pfb->finfo.line_length = (pfb->vinfo.bits_per_pixel / 8) * pfb->vinfo.xres;*/
-	pfb->vinfo.activate = FB_ACTIVATE_NOW;
+	pfb->vinfo.activate = FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW;
 
 	pfb->fb_device_set_vinfo(pfb);
 
