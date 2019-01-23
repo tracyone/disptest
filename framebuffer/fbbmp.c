@@ -116,15 +116,6 @@ int main(int argc, char *argv[])
 	ret = drawfb->fb_device_get_finfo(drawfb);
 	ret = drawfb->fb_device_get_vinfo(drawfb);
 
-	if (drawfb->vinfo.bits_per_pixel != 32) {
-		ret = drawfb->fb_set_pixformat(drawfb, FB_FORMAT_ARGB8888);
-		if (ret) {
-			loge("Set pixformat FB_FORMAT_ARGB8888 fail\n");
-			goto FREE_FB;
-		}
-		ret = drawfb->fb_device_get_finfo(drawfb);
-		ret = drawfb->fb_device_get_vinfo(drawfb);
-	}
 
 	drawfb->print_fixed_info(drawfb);
 	drawfb->print_var_info(drawfb);
@@ -147,6 +138,7 @@ int main(int argc, char *argv[])
 		pbmp->bmp_rgb24_to_rgb32(pbmp);
 
 	prgb->buf = pbmp->data_buf;
+	prgb->bits_per_pixel = pbmp->bmp_info_head.biBitCount;
 
 	prgb->rect.width = pbmp->bmp_info_head.biWidth;
 	prgb->rect.height = pbmp->real_height;

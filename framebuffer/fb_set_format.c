@@ -6,7 +6,7 @@
 
 void fb_set_format_usage()
 {
-	loge("fb_cap -path <bmp file path> -fb_id <id>\n");
+	loge("fb_set_format -fmt <fmtid> [-h]\n");
 }
 
 int parse_cmdline(int argc, char **argv, int *fmt)
@@ -53,6 +53,8 @@ int main(int argc, char *argv[])
 	int fmt = 0;
 
 	ret = parse_cmdline(argc, argv, &fmt);
+	if (ret)
+		goto OUT;
 
 	ret = fb_object_init(&drawfb, 0); /*/dev/fb0*/
 	if (ret || !drawfb)
@@ -67,8 +69,10 @@ int main(int argc, char *argv[])
 
 	if (fmt == 0)
 		drawfb->fb_set_pixformat(drawfb, FB_FORMAT_ARGB8888);
-	else
+	else if (fmt == 1)
 		drawfb->fb_set_pixformat(drawfb, FB_FORMAT_RGB888);
+	else if (fmt == 2)
+		drawfb->fb_set_pixformat(drawfb, FB_FORMAT_RGB565);
 
 	ret = drawfb->fb_device_get_vinfo(drawfb);
 	drawfb->print_var_info(drawfb);

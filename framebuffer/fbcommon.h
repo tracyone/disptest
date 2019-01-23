@@ -62,6 +62,7 @@ struct fb_rect {
 struct fb_raw_rgb {
 	unsigned char* buf;
 	struct fb_rect rect;
+	unsigned char bits_per_pixel;
 };
 
 /**

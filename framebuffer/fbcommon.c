@@ -372,7 +372,7 @@ static int fb_device_mmap(struct fb_object *pfb)
 OUT:
 	return ret;
 }
-static void draw_rect_rgb32(struct fb_object *pfb, int x0, int y0, int width,
+static void draw_rect(struct fb_object *pfb, int x0, int y0, int width,
 			    int height, int color)
 {
 	const int Bpp = pfb->vinfo.bits_per_pixel / 8;
@@ -381,10 +381,17 @@ static void draw_rect_rgb32(struct fb_object *pfb, int x0, int y0, int width,
 		     (y0 + pfb->vinfo.yoffset) * pfb->finfo.line_length +
 		     (x0 + pfb->vinfo.xoffset) * Bpp;
 	int x, y, j;
-	unsigned char color_code[4];
+	unsigned char color_code[4] = {0};
 	/*argb to bgra*/
-	for (x = 0; x < Bpp; ++x)
-		color_code[x] = (color >> (8*x));
+
+	/*rgb565 handle*/
+	if (Bpp == 2) {
+		color_code[0] = (color & 0x1f) + ((color >> 3) & 0x0e0);
+		color_code[1] = ((color >> 8) & 0x07) + ((color >> 13) & 0x0f8);
+	} else {
+		for (x = 0; x < 4; ++x)
+			color_code[x] = (color >> (8 * x));
+	}
 
 	for (y = 0; y < height; ++y) {
 		for (x = 0; x < width * Bpp; x += Bpp) {
@@ -445,9 +452,10 @@ static int fb_fill_rect(struct fb_object *pfb, struct fb_rect *prect,
 		goto OUT;
 
 	switch (pfb->vinfo.bits_per_pixel) {
+	case 16:
 	case 32:
 	case 24:
-		draw_rect_rgb32(pfb, prect->x, prect->y, prect->width,
+		draw_rect(pfb, prect->x, prect->y, prect->width,
 				prect->height, color);
 		ret = 0;
 		break;
@@ -483,29 +491,30 @@ OUT:
  */
 static int fb_device_draw_raw_buf(struct fb_object *pfb, struct fb_raw_rgb *prgb)
 {
-	int ret = -1, i = 0;
+	int ret = -1, i = 0 , Bpp = 4;
+	unsigned int offset_in_byte  = 0;
+
 	if (!pfb || !prgb || !pfb->fd  ||!pfb->framebuffer || !prgb->buf) {
 		loge("Null pointer\n");
 		goto OUT;
 	}
-	unsigned int offset =
-	    (prgb->rect.y + pfb->vinfo.yoffset) * pfb->finfo.line_length / 4 +
-	    (prgb->rect.x + pfb->vinfo.xoffset);
 
-	int *dest = (int*)pfb->framebuffer + offset;
-	int *src = (int*)prgb->buf;
+	Bpp = pfb->vinfo.bits_per_pixel / 8;
 
-	unsigned long pic_size = prgb->rect.width * prgb->rect.height * 4;
 
-	if (pic_size > pfb->finfo.smem_len - offset ) {
-		loge("pic is too large\n");
-		goto OUT;
-	}
+	offset_in_byte =
+	    (prgb->rect.y + pfb->vinfo.yoffset) * pfb->finfo.line_length +
+	    (prgb->rect.x + pfb->vinfo.xoffset) * Bpp;
+	loge("offset_in_byte:%d\n", offset_in_byte);
+
+	unsigned char *dest = (unsigned char*)pfb->framebuffer + offset_in_byte;
+	unsigned char *src = (unsigned char*)prgb->buf;
+
 
 	for (i = 0; i < prgb->rect.height; ++i) {
-		memcpy(dest, src, prgb->rect.width*(pfb->vinfo.bits_per_pixel / 8));
-		dest += pfb->finfo.line_length/(pfb->vinfo.bits_per_pixel / 8);
-		src += prgb->rect.width;
+		memcpy(dest, src, prgb->rect.width * prgb->bits_per_pixel / 8);
+		dest += pfb->finfo.line_length;
+		src += prgb->rect.width * prgb->bits_per_pixel / 8;
 	}
 
 #ifdef SUNXI_DISP2_FB_ROTATE
